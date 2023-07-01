@@ -45,10 +45,10 @@ int main(int argc, char **argv)
     fscanf(inputFile, "%d %d", &nJobs, &nMachines);
     outputFile = fopen("output.txt", "w");
 
-    int nthreads = 0;
+    int nThreads = nJobs;
     if (argc >= 2) {
-        nthreads = atoi(argv[2]);
-        printf("Number of threads: %d\n", nthreads);
+        nThreads = atoi(argv[2]);
+        printf("Number of threads: %d\n", nThreads);
     }
     
     Job jobs[100];
@@ -75,30 +75,30 @@ int main(int argc, char **argv)
     int endTime[100][100];     // Array para guardar end time
     int maxEndTime = 0; // Guardar o ultimo tempo
 
-#pragma omp parallel num_threads(nthreads > 0 ? nthreads : nJobs) // Com duplo for não conseguimos utilizar o criticall juntamnete com o barrier.
+#pragma omp parallel num_threads(nThreads > 0 ? nThreads : nJobs) // Com duplo for não conseguimos utilizar o criticall juntamnete com o barrier.
     {
-        int machineThread = omp_get_thread_num(); //Com isto substitui-mos o for de fora. Cada thread é responsavel por uma iteração.
+        int jobThread = omp_get_thread_num(); //Com isto substitui-mos o for de fora. Cada thread é responsavel por uma iteração.
 
         // Percorrer as linhas
-        for (int j = 0; j < nJobs; j++) // Percorre os jobs (combinaçao maquina, operacao)
+        for (int j = 0; j < nMachines; j++) // Percorre os jobs (combinaçao maquina, operacao)
         {   
         #pragma omp critical 
-            if (machines[jobs[machineThread].operations[j].machineId].isWorking == true) 
+            if (machines[jobs[jobThread].operations[j].machineId].isWorking == true) 
             {
                 // o tempo inicial da operacao 0 do job 1 é igual ao tempo da operacao 0 do job 0 
-                initialTime[machineThread][j] = machines[jobs[machineThread].operations[j].machineId].endTime; // Agora vai aceder à maquina que fez a operaçao 1 do job 0, que neste caso foi a maquina 0 que teve o end time definido na iteraçao 0,0      
-                endTime[machineThread][j] = initialTime[machineThread][j] + jobs[machineThread].operations[j].duration;
+                initialTime[jobThread][j] = machines[jobs[jobThread].operations[j].machineId].endTime; // Agora vai aceder à maquina que fez a operaçao 1 do job 0, que neste caso foi a maquina 0 que teve o end time definido na iteraçao 0,0      
+                endTime[jobThread][j] = initialTime[jobThread][j] + jobs[jobThread].operations[j].duration;
 
-                machines[jobs[machineThread].operations[j].machineId].isWorking = true; //ocupada
-                machines[jobs[machineThread].operations[j].machineId].endTime = endTime[machineThread][j];
+                machines[jobs[jobThread].operations[j].machineId].isWorking = true; //ocupada
+                machines[jobs[jobThread].operations[j].machineId].endTime = endTime[jobThread][j];
             }
             else // se a maquina responsavel pela operaçao 0 do job 0 esta livre..
             {
-                initialTime[machineThread][j] = maxEndTime;        // a opercao 0 começa aos 0                                        
-                endTime[machineThread][j] = initialTime[machineThread][j] + jobs[machineThread].operations[j].duration; // A operaçao 0 do job 0 termina aos 0 + o tempo de duraçao do job 0 da maquina 0
+                initialTime[jobThread][j] = maxEndTime;        // a opercao 0 começa aos 0                                        
+                endTime[jobThread][j] = initialTime[jobThread][j] + jobs[jobThread].operations[j].duration; // A operaçao 0 do job 0 termina aos 0 + o tempo de duraçao do job 0 da maquina 0
 
-                machines[jobs[machineThread].operations[j].machineId].isWorking = true; // a maquina 0 passou a estar ocupada
-                machines[jobs[machineThread].operations[j].machineId].endTime = endTime[machineThread][j]; //O tempo de término da operaçao 0 realizada na maquina 0 é igual ao endtime definido anteriormente   
+                machines[jobs[jobThread].operations[j].machineId].isWorking = true; // a maquina 0 passou a estar ocupada
+                machines[jobs[jobThread].operations[j].machineId].endTime = endTime[jobThread][j]; //O tempo de término da operaçao 0 realizada na maquina 0 é igual ao endtime definido anteriormente   
             }
         }
        
@@ -113,8 +113,8 @@ int main(int argc, char **argv)
         
         for (int mAux = 0; mAux < nMachines; mAux++)
         {
-            if (maxEndTime < endTime[mAux][machineThread])
-                maxEndTime = endTime[mAux][machineThread];
+            if (maxEndTime < endTime[mAux][jobThread])
+                maxEndTime = endTime[mAux][jobThread];
         }
     
     }
