@@ -1,6 +1,15 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#ifdef _OPENMP
+    #include <omp.h>
+    #define getClock() omp_get_wtime()
+    #else
+    #include <time.h>
+    #define getClock() ((double)clock() / CLOCKS_PER_SEC)
+#endif
+
+
 typedef struct
 {
     int machineId;
@@ -24,12 +33,17 @@ typedef struct
 
 int main(int argc, char **argv)
 {
+    double tempoinicio = getClock();
+
     FILE *inputFile;
+    FILE *outputFile;
     int nJobs;
     int nMachines;
 
     inputFile = fopen(argv[1], "r");
     fscanf(inputFile, "%d %d", &nJobs, &nMachines);
+
+    outputFile = fopen(argv[2], "w");
 
     Job jobs[100];
     Machine machines[100];
@@ -53,10 +67,10 @@ int main(int argc, char **argv)
     int endTime[100][100];     // Array para guardar end time
     int maxEndTime = 0; // Guardar o ultimo tempo
     
-    for (int m = 0; m < nMachines; m++) // percore as maquinas (Linha de operacoes)
+    for (int m = 0; m < nMachines; m++) // percore as jobs (Linha de operacoes)
     {
         // Percorrer as linhas
-        for (int j = 0; j < nJobs; j++) // Percorre os jobs (combinaçao maquina, operacao)
+        for (int j = 0; j < nJobs; j++) // Percorre as operacoes (combinaçao maquina, duraçao)
         {   
             if (machines[jobs[j].operations[m].machineId].isWorking == true) 
             {
@@ -65,7 +79,7 @@ int main(int argc, char **argv)
                 endTime[j][m] = initialTime[j][m] + jobs[j].operations[m].duration;
 
                 machines[jobs[j].operations[m].machineId].isWorking = true; //ocupada
-                machines[jobs[j].operations[m].machineId].endTime = endTime[j][m];
+                machines[jobs[j].operations[m].machineId].endTime = endTime[j][m];  
             }
             else // se a maquina responsavel pela operaçao 0 do job 0 esta livre..
             {
@@ -100,9 +114,10 @@ int main(int argc, char **argv)
     for (int j = 0; j < nJobs; j++) {
         for (int m = 0; m < nMachines; m++) {
             printf("Job %d, Machine %d, Start Time: %d, End Time: %d\n", j, jobs[j].operations[m].machineId, initialTime[j][m], endTime[j][m]);
+            fprintf(outputFile, "Job %d, Machine %d, Start Time: %d, End Time: %d\n", j, jobs[j].operations[m].machineId, initialTime[j][m], endTime[j][m]);
         }
     }
-
+    printf("tempo execucao (s)= %.6f\n", getClock() - tempoinicio);
 
 
     return 0;
