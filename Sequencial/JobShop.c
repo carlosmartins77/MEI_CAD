@@ -110,6 +110,8 @@ int main(int argc, char **argv)
     
     }
 
+    printf("Tempo execucao (s)= %.6f\n", getClock() - tempoinicio);
+
     // Print do resultado
     for (int j = 0; j < nJobs; j++) {
         for (int m = 0; m < nMachines; m++) {
@@ -117,7 +119,7 @@ int main(int argc, char **argv)
             fprintf(outputFile, "Job %d, Machine %d, Start Time: %d, End Time: %d\n", j, jobs[j].operations[m].machineId, initialTime[j][m], endTime[j][m]);
         }
     }
-    printf("tempo execucao (s)= %.6f\n", getClock() - tempoinicio);
+    
 
 
     return 0;
