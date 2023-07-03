@@ -33,8 +33,6 @@ typedef struct
 
 int main(int argc, char **argv)
 {
-   
-
     FILE *inputFile;
     FILE *outputFile;
     int nJobs;
@@ -112,9 +110,7 @@ int main(int argc, char **argv)
     
     }
 
-    
-
-    Sleep(1);
+    Sleep(1); // Sleep 1ms para conseguirmos obter resultados para o speedup
     double tempoFim = getClock();
     
     // Print do resultado
@@ -127,7 +123,5 @@ int main(int argc, char **argv)
 
     printf("Tempo execucao (s)= %.6f\n", tempoFim - tempoInicio);
     
-    
-
     return 0;
 }
