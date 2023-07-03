@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <windows.h>
 
 #ifdef _OPENMP
     #include <omp.h>
@@ -30,10 +31,9 @@ typedef struct
 } Job;
 
 
-
 int main(int argc, char **argv)
 {
-    double tempoinicio = getClock();
+   
 
     FILE *inputFile;
     FILE *outputFile;
@@ -66,6 +66,8 @@ int main(int argc, char **argv)
     int initialTime[100][100]; // Array para guardar initial time
     int endTime[100][100];     // Array para guardar end time
     int maxEndTime = 0; // Guardar o ultimo tempo
+
+    double tempoInicio = getClock();
     
     for (int m = 0; m < nMachines; m++) // percore as jobs (Linha de operacoes)
     {
@@ -110,8 +112,11 @@ int main(int argc, char **argv)
     
     }
 
-    printf("Tempo execucao (s)= %.6f\n", getClock() - tempoinicio);
+    
 
+    Sleep(1);
+    double tempoFim = getClock();
+    
     // Print do resultado
     for (int j = 0; j < nJobs; j++) {
         for (int m = 0; m < nMachines; m++) {
@@ -119,8 +124,10 @@ int main(int argc, char **argv)
             fprintf(outputFile, "Job %d, Machine %d, Start Time: %d, End Time: %d\n", j, jobs[j].operations[m].machineId, initialTime[j][m], endTime[j][m]);
         }
     }
-    
 
+    printf("Tempo execucao (s)= %.6f\n", tempoFim - tempoInicio);
+    
+    
 
     return 0;
 }
